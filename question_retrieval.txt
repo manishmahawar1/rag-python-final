@@ -1,0 +1,4 @@
+What is chunking stage and duplicate detection?
+How does the redis queue work with fastapi service?
+Explain text extraction and quality score in document ingestion pipeline
+What is the capital of France? expected  score 0

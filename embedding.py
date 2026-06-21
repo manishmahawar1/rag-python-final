@@ -157,3 +157,17 @@ def cosine_similarity(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
 def embed_query(query_text: str, word_to_idx: dict, doc_freq: dict, total_docs: int) -> np.ndarray:
     tokens = tokenize(query_text)
     return compute_tfidf_vector(tokens, word_to_idx, doc_freq, total_docs)
+
+
+# ─────────────────────────────────────
+# STEP G: Database se vocabulary load karke
+# query ko vector mein convert karna (Retrieval ke liye)
+# ─────────────────────────────────────
+def vectorize_query(query_text: str, word_to_idx: dict, doc_freq: dict, total_docs: int) -> np.ndarray:
+    """
+    Yeh function Retrieval ke time use hota hai.
+    SAME vocabulary use karta hai jo Ingestion ke time bani thi
+    (database se load karke), naya vocabulary NAHI banata.
+    """
+    tokens = tokenize(query_text)
+    return compute_tfidf_vector(tokens, word_to_idx, doc_freq, total_docs)

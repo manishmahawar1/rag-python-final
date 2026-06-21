@@ -108,6 +108,42 @@ def list_documents():
         for r in rows
     ]
 
+@app.get("/documents/{source_name}/chunks")
+def get_document_chunks(source_name: str):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT chunk_index, text, 
+               LENGTH(text) - LENGTH(REPLACE(text, ' ', '')) + 1 AS word_count
+        FROM documents
+        WHERE source = %s
+        ORDER BY chunk_index;
+    """, (source_name,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return [
+        {"chunk_index": r[0], "text": r[1], "word_count": r[2]}
+        for r in rows
+    ]    
+
+
+
+from retrieval import search as search_documents
+from pydantic import BaseModel
+
+class SearchRequest(BaseModel):
+    query: str
+    top_k: int = 5
+
+@app.post("/search")
+def search_route(req: SearchRequest):
+    try:
+        result = search_documents(req.query, req.top_k)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ─────────────────────────────────────
 # ROUTE 3: Health check (simple test)

@@ -11,7 +11,7 @@ Har step ka time print hota hai console mein.
 
 import time
 import json
-import pypdf
+import pypdfium2 as pdfium
 import psycopg2.extras
 
 from db import get_connection, VECTOR_SIZE
@@ -24,15 +24,21 @@ from logger import StepTimer, print_header, print_footer
 # ─────────────────────────────────────
 def extract_text_from_pdf(file_path: str) -> str:
     with StepTimer("STEP 1: Extracting text from PDF") as t:
-        full_text = ""
+        full_text_parts = []
 
-        reader = pypdf.PdfReader(file_path)
-        num_pages = len(reader.pages)
+        pdf = pdfium.PdfDocument(file_path)
+        num_pages = len(pdf)
 
-        for page in reader.pages:
-            page_text = page.extract_text() or ""
-            full_text += page_text + "\n"
+        for page in pdf:
+            textpage = page.get_textpage()
+            page_text = textpage.get_text_range()
+            full_text_parts.append(page_text)
+            textpage.close()
+            page.close()
 
+        pdf.close()
+
+        full_text = "\n".join(full_text_parts)
         clean_text = " ".join(full_text.split())
 
         word_count = len(clean_text.split())
@@ -41,7 +47,6 @@ def extract_text_from_pdf(file_path: str) -> str:
         print(f"   🔍 Sample: \"{clean_text[:100]}...\"")
 
     return clean_text
-
 # ─────────────────────────────────────
 # STEP 2: Chunking (with overlap)
 # ─────────────────────────────────────
